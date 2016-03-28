@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["Victor Bankowski <victor_bankowski@hotmail.com>"]
 
 [dependencies]
+image = "*"
+dungenon = { git = "https://github.com/VoxWave/dungenon-rs.git"}
