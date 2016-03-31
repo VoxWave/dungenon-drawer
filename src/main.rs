@@ -3,43 +3,45 @@ extern crate dungenon;
 
 use std::io;
 use dungenon::level::Level;
-use dungenon::tile:Tile;
+use dungenon::tile::Tile;
 use dungenon::generator::MazeGen;
 
 use image::png::PNGEncoder;
 
 fn main() {
+    println!("Initializing level...");
     let mut level = init_level();
 
-    println!("This is the dungenon-drawer. With \nType Help for list of commands.");
+    println!("This is the dungenon-drawer. \nType Help for list of commands.");
     loop {
-        print!("Enter command:");
-        let mut line = io::stdin().read_line(&mut guess)
-        .expect("Failed to read line").trim();
-
-        match line {
-            "Dungeon" => carve_dungeon(&mut level),
-            "Maze" => carve_maze(&mut level),
-            "Room" => carve_rooms(&mut level),
-            "Reset" => level = init_level();
-            "Export" => {
+        println!("Enter command:");
+        let mut command = String::new();
+        io::stdin().read_line(&mut command)
+        .expect("Failed to read line");
+        println!("{}", command);
+        match command.trim() {
+            "dungeon" => carve_dungeon(&mut level),
+            "maze" => carve_maze(&mut level),
+            "room" => carve_rooms(&mut level),
+            "reset" => level = init_level(),
+            "export" => {
                 png_export(&mut level);
             },
-            "Help" => {
+            "help" => {
                 println!("Help command is not implemented yet!");
             }
-            "Exit" => break,
+            "exit" => break,
             _ => println!("Invalid command"),
         }
     }
 }
 
 fn init_level() -> Level {
-    print!("Input level x size: ");
+    println!("Input level width: ");
     let mut x = usize_from_cmd();
 
 
-    print!("Input level y size: ");
+    println!("Input level height: ");
     let mut y = usize_from_cmd();
 
     Level::new_filled_with(Some(Tile::Wall), x, y)
@@ -50,20 +52,39 @@ fn carve_dungeon(level: &mut Level) {
 }
 
 fn carve_maze(level: &mut Level) {
-    print!("Input MazeGen startpos x coordinate: ");
+    println!("Input MazeGen startpos x coordinate: ");
     let mut x = usize_from_cmd();
 
-    print!("Input MazeGen startpos y coordinate: ");
+    println!("Input MazeGen startpos y coordinate: ");
     let mut y = usize_from_cmd();
-
-    level.apply(MazeGen::new(x,y).generate);
+    let mut mazegen = MazeGen::new(x,y);
+    level.apply(|m| mazegen.generate(m));
 }
 
 fn carve_rooms(level: &mut Level) {
     println!("Not implemented.");
 }
 
-fn png_export(level: &mut Level)
+fn png_export(level: &mut Level) {
+
+}
+
+fn print_level(level: &mut Level) {
+    let mut string = String::new();
+    for y in 0 .. level.get_width() {
+        for x in 0 .. level.get_height() {
+            match level[(x,y)] {
+                Some(tile) => {
+                    match tile {
+                        Tile::
+                    }
+                },
+                None => string.push(' ');
+            }
+        }
+        string.push('\n');
+    }
+}
 
 fn usize_from_cmd() -> usize {
     let mut num = String::new();
@@ -72,5 +93,6 @@ fn usize_from_cmd() -> usize {
         .expect("failed to read line");
 
     let num: usize = num.trim().parse()
-        .expect("Please type a number!")
+        .expect("Please type a number!");
+    num
 }
