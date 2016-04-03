@@ -7,6 +7,7 @@ use dungenon::tile::Tile;
 use dungenon::generator::MazeGen;
 
 use image::png::PNGEncoder;
+use image::RgbaImage;
 
 fn main() {
     println!("Initializing level...");
@@ -67,7 +68,12 @@ fn carve_rooms(level: &mut Level) {
 }
 
 fn png_export(level: &mut Level) {
-
+    let mut level_image = RgbaImage::new(level.get_height(), level.get_height());
+    for y in 0 .. level.get_width() {
+        for x in 0 .. level.get_height() {
+            
+        }
+    }
 }
 
 fn print_level(level: &Level) {
