@@ -27,6 +27,7 @@ fn main() {
             "export" => {
                 png_export(&mut level);
             },
+            "print" => print_level(&level),
             "help" => {
                 println!("Help command is not implemented yet!");
             }
@@ -69,21 +70,24 @@ fn png_export(level: &mut Level) {
 
 }
 
-fn print_level(level: &mut Level) {
+fn print_level(level: &Level) {
     let mut string = String::new();
     for y in 0 .. level.get_width() {
         for x in 0 .. level.get_height() {
             match level[(x,y)] {
-                Some(tile) => {
+                Some(ref tile) => {
                     match tile {
-                        Tile::
+                        &Tile::Wall => string.push('#'),
+                        &Tile::Floor => string.push(' '),
+                        &Tile::Void => string.push('*'),
                     }
                 },
-                None => string.push(' ');
+                None => string.push('*'),
             }
         }
         string.push('\n');
     }
+    println!("{}", &string);
 }
 
 fn usize_from_cmd() -> usize {
