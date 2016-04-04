@@ -2,12 +2,15 @@ extern crate image;
 extern crate dungenon;
 
 use std::io;
+use std::path::PathBuf;
+
 use dungenon::level::Level;
 use dungenon::tile::Tile;
 use dungenon::generator::MazeGen;
 
-use image::png::PNGEncoder;
-use image::RgbaImage;
+use image::RgbImage;
+use image::Rgb;
+
 
 fn main() {
     println!("Initializing level...");
@@ -16,9 +19,7 @@ fn main() {
     println!("This is the dungenon-drawer. \nType Help for list of commands.");
     loop {
         println!("Enter command:");
-        let mut command = String::new();
-        io::stdin().read_line(&mut command)
-        .expect("Failed to read line");
+        let mut command = string_from_cmd();
         println!("{}", command);
         match command.trim() {
             "dungeon" => carve_dungeon(&mut level),
@@ -68,13 +69,33 @@ fn carve_rooms(level: &mut Level) {
 }
 
 fn png_export(level: &mut Level) {
-    let mut level_image = RgbaImage::new(level.get_height(), level.get_height());
+    let mut level_image = RgbImage::new(level.get_height(), level.get_height());
     for y in 0 .. level.get_width() {
         for x in 0 .. level.get_height() {
-            
+            level_image.put_pixel(x as u32, y as u32, tile_to_color(&level[(x,y)]));
         }
     }
+    let mut p = PathBuf::new();
+    println!("Enter png name:");
+    p.push(&string_from_cmd());
+    p.set_extension("png");
+    level_image.save(p.as_path());
 }
+
+fn tile_to_color(tile: &Option<Tile>) -> Rgb<u8> {
+    match tile {
+        &Some(ref tile) => {
+            match tile {
+                &Tile::Wall => return image::Rgb([200 as u8, 200 as u8, 200 as u8]),
+                &Tile::Floor => return image::Rgb([127 as u8, 127 as u8, 127 as u8]),
+                &Tile::Void => return image::Rgb([0 as u8, 0 as u8, 0 as u8]),
+            }
+        },
+        &None => return image::Rgb([0 as u8, 0 as u8, 0 as u8]),
+    }
+
+}
+
 
 fn print_level(level: &Level) {
     let mut string = String::new();
@@ -105,4 +126,11 @@ fn usize_from_cmd() -> usize {
     let num: usize = num.trim().parse()
         .expect("Please type a number!");
     num
+}
+
+fn string_from_cmd() -> String {
+    let mut string = String::new();
+    io::stdin().read_line(&mut string)
+    .expect("Failed to read line");
+    string
 }
