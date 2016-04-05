@@ -69,7 +69,7 @@ fn carve_rooms(level: &mut Level) {
 }
 
 fn png_export(level: &mut Level) {
-    let mut level_image = RgbImage::new(level.get_height(), level.get_height());
+    let mut level_image = RgbImage::new(level.get_height() as u32, level.get_height() as u32);
     for y in 0 .. level.get_width() {
         for x in 0 .. level.get_height() {
             level_image.put_pixel(x as u32, y as u32, tile_to_color(&level[(x,y)]));
@@ -77,23 +77,22 @@ fn png_export(level: &mut Level) {
     }
     let mut p = PathBuf::new();
     println!("Enter png name:");
-    p.push(&string_from_cmd());
+    p.push(string_from_cmd().trim());
     p.set_extension("png");
     level_image.save(p.as_path());
 }
 
 fn tile_to_color(tile: &Option<Tile>) -> Rgb<u8> {
-    match tile {
-        &Some(ref tile) => {
-            match tile {
-                &Tile::Wall => return image::Rgb([200 as u8, 200 as u8, 200 as u8]),
-                &Tile::Floor => return image::Rgb([127 as u8, 127 as u8, 127 as u8]),
-                &Tile::Void => return image::Rgb([0 as u8, 0 as u8, 0 as u8]),
+    match *tile {
+        Some(ref tile) => {
+            match *tile {
+                Tile::Wall => image::Rgb([127u8, 127u8, 127u8]),
+                Tile::Floor => image::Rgb([200u8, 200u8, 200u8]),
+                Tile::Void => image::Rgb([0u8, 0u8, 0u8]),
             }
         },
-        &None => return image::Rgb([0 as u8, 0 as u8, 0 as u8]),
+        None => image::Rgb([0u8, 0u8, 0u8]),
     }
-
 }
 
 
