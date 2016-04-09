@@ -86,12 +86,12 @@ fn tile_to_color(tile: &Option<Tile>) -> Rgb<u8> {
     match *tile {
         Some(ref tile) => {
             match *tile {
-                Tile::Wall => image::Rgb([127u8, 127u8, 127u8]),
-                Tile::Floor => image::Rgb([200u8, 200u8, 200u8]),
-                Tile::Void => image::Rgb([0u8, 0u8, 0u8]),
+                Tile::Wall => Rgb([127u8, 127u8, 127u8]),
+                Tile::Floor => Rgb([200u8, 200u8, 200u8]),
+                Tile::Void => Rgb([0u8, 0u8, 0u8]),
             }
         },
-        None => image::Rgb([0u8, 0u8, 0u8]),
+        None => Rgb([0u8, 0u8, 0u8]),
     }
 }
 
