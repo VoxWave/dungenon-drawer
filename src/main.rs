@@ -11,6 +11,9 @@ use dungenon::generator::MazeGen;
 use image::RgbImage;
 use image::Rgb;
 
+struct Drawer {
+    
+}
 
 fn main() {
     println!("Initializing level...");
