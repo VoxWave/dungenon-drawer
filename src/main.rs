@@ -119,8 +119,8 @@ impl Drawer {
 
     fn png_export(&self, level: &mut Level) {
         let mut level_image = RgbImage::new(level.get_width() as u32, level.get_height() as u32);
-        for y in 0 .. level.get_width() {
-            for x in 0 .. level.get_height() {
+        for x in 0 .. level.get_width() {
+            for y in 0 .. level.get_height() {
                 level_image.put_pixel(x as u32, y as u32, self.tile_to_color(&level[(x,y)]));
             }
         }
