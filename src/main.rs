@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use dungenon::level::Level;
 use dungenon::tile::Tile;
-use dungenon::generator::MazeGen;
+use dungenon::generator::{MazeGen, RoomGen};
 
 use image::RgbImage;
 use image::Rgb;
@@ -114,7 +114,20 @@ impl Drawer {
     }
 
     fn carve_rooms(level: &mut Level) {
-        println!("Not implemented.");
+        println!("Input min room size:");
+        let min_room_size = Self::usize_from_cmd();
+
+        println!("Input max room size:");
+        let max_room_size = Self::usize_from_cmd();
+
+        println!("Input min room distance:");
+        let room_distance = Self::usize_from_cmd();
+
+        println!("Input room placement amount (Something high preferably):");
+        let attempts = Self::u64_from_cmd();
+
+        let mut roomgen = RoomGen::new(min_room_size, max_room_size, room_distance, attempts);
+        level.apply(|m| roomgen.generate(m));
     }
 
     fn png_export(&self, level: &mut Level) {
@@ -171,6 +184,17 @@ impl Drawer {
             .expect("failed to read line");
 
         let num: usize = num.trim().parse()
+            .expect("Please type a number!");
+        num
+    }
+
+    fn u64_from_cmd() -> u64 {
+        let mut num = String::new();
+
+        io::stdin().read_line(&mut num)
+            .expect("failed to read line");
+
+        let num: u64 = num.trim().parse()
             .expect("Please type a number!");
         num
     }
