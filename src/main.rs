@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use dungenon::level::Level;
 use dungenon::tile::Tile;
-use dungenon::generator::{MazeGen, RoomGen};
+use dungenon::generator::{MazeGen, RoomGen, DungeonGen};
 
 use image::RgbImage;
 use image::Rgb;
@@ -43,7 +43,7 @@ impl Drawer {
             let command = Self::string_from_cmd();
             match command.trim() {
                 "dungeon" => Self::carve_dungeon(&mut level),
-                "maze" => self.carve_maze(&mut level),
+                "maze" => Self::carve_maze(&mut level),
                 "room" => Self::carve_rooms(&mut level),
                 "reset" => level = self.init_level(),
                 "colors" => self.change_colors(),
@@ -100,20 +100,28 @@ impl Drawer {
     }
 
     fn carve_dungeon(level: &mut Level) {
-        println!("Not implemented.");
+        println!("Creating DungeonGen...");
+        let mut mazegen = Self::create_mazegen();
+        let mut roomgen = Self::create_roomgen();
+        let mut dungeongen = DungeonGen::new(mazegen, roomgen);
+        level.apply(|m| dungeongen.generate(m));
     }
 
-    fn carve_maze(&self, level: &mut Level) {
+    fn create_mazegen() -> MazeGen {
         println!("Input MazeGen startpos x coordinate: ");
         let x = Self::usize_from_cmd();
 
         println!("Input MazeGen startpos y coordinate: ");
         let y = Self::usize_from_cmd();
-        let mut mazegen = MazeGen::new(x,y);
+        MazeGen::new(x,y)
+    }
+
+    fn carve_maze(level: &mut Level) {
+        let mut mazegen = Self::create_mazegen();
         level.apply(|m| mazegen.generate(m));
     }
 
-    fn carve_rooms(level: &mut Level) {
+    fn create_roomgen() -> RoomGen {
         println!("Input min room size:");
         let min_room_size = Self::usize_from_cmd();
 
@@ -126,7 +134,11 @@ impl Drawer {
         println!("Input room placement amount (Something high preferably):");
         let attempts = Self::u64_from_cmd();
 
-        let mut roomgen = RoomGen::new(min_room_size, max_room_size, room_distance, attempts);
+        RoomGen::new(min_room_size, max_room_size, room_distance, attempts)
+    }
+
+    fn carve_rooms(level: &mut Level) {
+        let mut roomgen = Self::create_roomgen();
         level.apply(|m| roomgen.generate(m));
     }
 

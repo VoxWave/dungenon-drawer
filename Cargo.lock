@@ -25,7 +25,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "dungenon"
 version = "0.1.0"
-source = "git+https://github.com/VoxWave/dungenon-rs.git#ba4221964f55c12c31676c9b2977cf1b4544d8fc"
+source = "git+https://github.com/VoxWave/dungenon-rs.git#f6bbebb3df8f1acf82fafaa9b2a6475c5595476e"
 dependencies = [
  "nalgebra 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
