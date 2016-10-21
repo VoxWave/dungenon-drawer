@@ -88,7 +88,7 @@ impl Drawer {
         }
     }
 
-    fn init_level(&self) -> Level {
+    fn init_level(&self) -> Level<Tile> {
         println!("Input level width: ");
         let x = Self::usize_from_cmd();
 
@@ -96,10 +96,10 @@ impl Drawer {
         println!("Input level height: ");
         let y = Self::usize_from_cmd();
 
-        Level::new_filled_with(Some(Tile::Wall), x, y)
+        Level::new_filled_with(Tile::Wall, x, y)
     }
 
-    fn carve_dungeon(level: &mut Level) {
+    fn carve_dungeon(level: &mut Level<Tile>) {
         println!("Creating DungeonGen...");
         let mut mazegen = Self::create_mazegen();
         let mut roomgen = Self::create_roomgen();
@@ -116,7 +116,7 @@ impl Drawer {
         MazeGen::new(x,y)
     }
 
-    fn carve_maze(level: &mut Level) {
+    fn carve_maze(level: &mut Level<Tile>) {
         let mut mazegen = Self::create_mazegen();
         level.apply(|m| mazegen.generate(m));
     }
@@ -137,12 +137,12 @@ impl Drawer {
         RoomGen::new(min_room_size, max_room_size, room_distance, attempts)
     }
 
-    fn carve_rooms(level: &mut Level) {
+    fn carve_rooms(level: &mut Level<Tile>) {
         let mut roomgen = Self::create_roomgen();
         level.apply(|m| roomgen.generate(m));
     }
 
-    fn png_export(&self, level: &mut Level) {
+    fn png_export(&self, level: &mut Level<Tile>) {
         let mut level_image = RgbImage::new(level.get_width() as u32, level.get_height() as u32);
         for x in 0 .. level.get_width() {
             for y in 0 .. level.get_height() {
@@ -169,19 +169,20 @@ impl Drawer {
     }
 
 
-    fn print_level(level: &Level) {
+    fn print_level(level: &Level<Tile>) {
+        use dungenon::util::Error;
         let mut string = String::new();
         for y in 0 .. level.get_width() {
             for x in 0 .. level.get_height() {
-                match level[(x,y)] {
-                    Some(ref tile) => {
+                match level.get_tile_with_tuple((x,y)) {
+                    Result(tile) => {
                         match tile {
-                            &Tile::Wall => string.push('#'),
-                            &Tile::Floor => string.push(' '),
-                            &Tile::Void => string.push('*'),
+                            &Tile::Wall(_) => string.push('#'),
+                            &Tile::Floor(_) => string.push(' '),
+                            &Tile::Void(_) => string.push('*'),
                         }
                     },
-                    None => string.push('*'),
+                    Err(Error::IndexOutOfBounds) => panic!("IndexOutOfBounds occurred. Level printing wasn't implemented properly."),
                 }
             }
             string.push('\n');
