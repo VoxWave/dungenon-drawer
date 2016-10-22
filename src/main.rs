@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use dungenon::level::Level;
 use dungenon::tile::Tile;
 use dungenon::generator::{MazeGen, RoomGen, DungeonGen};
+use dungenon::util::Error;
 
 use image::RgbImage;
 use image::Rgb;
@@ -25,9 +26,9 @@ struct Drawer {
 impl Drawer {
     pub fn new() -> Drawer {
         let mut colors = HashMap::new();
-        colors.insert(Tile::Wall, Rgb([127u8, 127u8, 127u8]));
-        colors.insert(Tile::Floor, Rgb([200u8, 200u8, 200u8]));
-        colors.insert(Tile::Void, Rgb([0u8, 0u8, 0u8]));
+        colors.insert(Tile::Wall(0), Rgb([127u8, 127u8, 127u8]));
+        colors.insert(Tile::Floor(0), Rgb([200u8, 200u8, 200u8]));
+        colors.insert(Tile::Void(0), Rgb([0u8, 0u8, 0u8]));
         Drawer{
             colors: colors,
         }
@@ -67,9 +68,9 @@ impl Drawer {
             println!("Which color would you like to change? (floor, wall, void), Type exit if you're done with modifying colors.");
             let command = Self::string_from_cmd();
             let key = match command.trim() {
-                "floor" => Tile::Floor,
-                "wall" => Tile::Wall,
-                "void" => Tile::Void,
+                "floor" => Tile::Floor(0),
+                "wall" => Tile::Wall(0),
+                "void" => Tile::Void(0),
                 "exit" => break,
                 _ => {
                     println!("Invalid command.");
@@ -96,13 +97,13 @@ impl Drawer {
         println!("Input level height: ");
         let y = Self::usize_from_cmd();
 
-        Level::new_filled_with(Tile::Wall, x, y)
+        Level::new_filled_with(Tile::Wall(0), x, y)
     }
 
     fn carve_dungeon(level: &mut Level<Tile>) {
         println!("Creating DungeonGen...");
-        let mut mazegen = Self::create_mazegen();
-        let mut roomgen = Self::create_roomgen();
+        let mazegen = Self::create_mazegen();
+        let roomgen = Self::create_roomgen();
         let mut dungeongen = DungeonGen::new(mazegen, roomgen);
         level.apply(|m| dungeongen.generate(m));
     }
@@ -146,7 +147,7 @@ impl Drawer {
         let mut level_image = RgbImage::new(level.get_width() as u32, level.get_height() as u32);
         for x in 0 .. level.get_width() {
             for y in 0 .. level.get_height() {
-                level_image.put_pixel(x as u32, y as u32, self.tile_to_color(&level[(x,y)]));
+                level_image.put_pixel(x as u32, y as u32, self.tile_to_color(&level.get_tile_with_tuple((x,y))));
             }
         }
         let mut p = PathBuf::new();
@@ -156,15 +157,15 @@ impl Drawer {
         level_image.save(p.as_path()).expect("Something went wrong when saving the png.");
     }
 
-    fn tile_to_color(&self, tile: &Option<Tile>) -> Rgb<u8> {
+    fn tile_to_color(&self, tile: &Result<&Tile, Error>) -> Rgb<u8> {
         match *tile {
-            Some(ref tile) => {
+            Ok(ref tile) => {
                     match self.colors.get(tile) {
                         Some(color) => color.clone(),
                         None => Rgb([255u8, 0u8, 255u8]),
                     }
             },
-            None => Rgb([0u8, 0u8, 0u8]),
+            Err(Error::IndexOutOfBounds) => panic!("Tile png import failed. Level indexing went out of bounds."),
         }
     }
 
@@ -175,7 +176,7 @@ impl Drawer {
         for y in 0 .. level.get_width() {
             for x in 0 .. level.get_height() {
                 match level.get_tile_with_tuple((x,y)) {
-                    Result(tile) => {
+                    Ok(tile) => {
                         match tile {
                             &Tile::Wall(_) => string.push('#'),
                             &Tile::Floor(_) => string.push(' '),
