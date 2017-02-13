@@ -35,8 +35,21 @@ impl Drawer {
     }
 
     pub fn start(&mut self) {
+        println!("Choose level type(faction, tile):");
+        let t = Self::string_from_cmd();
+        match t.trim() {
+            "faction" => self.start_faction(),
+            "tile" => self.start_tile(),
+        }
+    }
+
+    pub fn start_faction(&mut self) {
+
+    }
+
+    pub fn start_tile(&mut self) {
         println!("Initializing level...");
-        let mut level = self.init_level();
+        let mut level = self.init_tile_level();
 
         println!("This is the dungenon-drawer. \nType Help for list of commands.");
         loop {
@@ -53,7 +66,7 @@ impl Drawer {
                 },
                 "print" => Self::print_level(&level),
                 "help" => {
-                    println!("Help command is not implemented yet!");
+                    println!("Options: dungeon, maze, room, reset, colors, export, print, help, and exit");
                 }
                 "exit" => break,
                 _ => println!("Invalid command."),
@@ -89,7 +102,7 @@ impl Drawer {
         }
     }
 
-    fn init_level(&self) -> Level<Tile> {
+    fn init_tile_level(&self) -> Level<Tile> {
         println!("Input level width: ");
         let x = Self::usize_from_cmd();
 
