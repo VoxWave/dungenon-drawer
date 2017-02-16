@@ -6,8 +6,8 @@ use std::io;
 use std::path::PathBuf;
 
 use dungenon::level::Level;
-use dungenon::tile::Tile;
-use dungenon::generator::{MazeGen, RoomGen, DungeonGen};
+use dungenon::tile::{Tile, Faction};
+use dungenon::generator::{MazeGen, RoomGen, DungeonGen, FactionGen};
 use dungenon::util::Error;
 
 use image::RgbImage;
@@ -20,17 +20,26 @@ fn main() {
 }
 
 struct Drawer {
-    pub colors: HashMap<Tile, Rgb<u8>>,
+    pub dungeon_colors: HashMap<Tile, Rgb<u8>>,
+    pub faction_colors: HashMap<Faction, Rgb<u8><,
 }
 
 impl Drawer {
     pub fn new() -> Drawer {
-        let mut colors = HashMap::new();
-        colors.insert(Tile::Wall(0), Rgb([127u8, 127u8, 127u8]));
-        colors.insert(Tile::Floor(0), Rgb([200u8, 200u8, 200u8]));
-        colors.insert(Tile::Void(0), Rgb([0u8, 0u8, 0u8]));
+        let mut dungeon_colors = HashMap::new();
+        dungeon_colors.insert(Tile::Wall(0), Rgb([127u8, 127u8, 127u8]));
+        dungeon_colors.insert(Tile::Floor(0), Rgb([200u8, 200u8, 200u8]));
+        dungeon_colors.insert(Tile::Void(0), Rgb([0u8, 0u8, 0u8]));
+
+        let mut faction_colors = HashMap::new();
+        faction_colors.insert(Faction::Faction(0), Rgb([200u8, 0u8, 0u8]));
+        faction_colors.insert(Faction::Faction(1), Rgb([0u8, 0u8, 127u8]));
+        faction_colors.insert(Faction::Neutral, Rgb([127u8, 127u8, 127u8]));
+        faction_colors.insert(Faction::Void, Rgb([0u8, 0u8, 0u8]));
+
         Drawer{
-            colors: colors,
+            dungeon_colors: dungeon_colors,
+            faction_colors: faction_colors,
         }
     }
 
@@ -44,14 +53,81 @@ impl Drawer {
     }
 
     pub fn start_faction(&mut self) {
+        let mut level = self.init_faction_level();
+        let simulator = FactionGen::new();
 
+        println!("This is the faction mode of dungenon-drawer.");
+        println!("Type Help for list of possible commands.")
+        loop {
+            println!("Enter command:");
+            let command = Self::string_from_cmd();
+            match command.trim() {
+                "simulate" => Self::simulate_factions(&mut level, &mut simulator),
+                "factions" => Self::edit_level(&mut level),
+                "colors" => self.change_faction_colors(),
+                "export" => self.png_export("&mut Level"),
+                "help" => println!("Options: help, simulate, factions, colors, export and exit"),
+                "exit" => break,
+                _ => println!("Invalid command.")
+            }
+        }
+    }
+
+    fn init_faction_level(&self) -> Level<Faction> {
+        println!("Initializing level...");
+        println!("Input level width: ");
+        let x = Self::usize_from_cmd();
+
+
+        println!("Input level height: ");
+        let y = Self::usize_from_cmd();
+
+        Level::new_filled_with(Faction::Neutral, x, y)
+    }
+
+    fn simulate_factions(level: &mut Level<Faction>, simulator: &mut FactionGen) {
+        println!("How many simulation steps are iterated?");
+        let iterations = Self::u64_from_cmd();
+        for 0..iterations {
+            level.apply(|m| simulator.generate(m));    
+        }
+    }
+
+    fn edit_level(level: &mut Level<Faction>) {
+        loop {
+            println!("Input x coordinate:");
+            let x = Self::usize_from_cmd();
+            println!("Input y coordinate:");
+            let y = Self::usize_from_cmd();
+
+            println!("Select type(faction, neutral, void):");
+            let faction_type = Self::string_from_cmd();
+            let faction = match faction.trim() {
+                "faction" => {
+                    println!("Input faction number:");
+                    let faction_number = Self::usize_from_cmd();
+                    Faction::Faction(faction_number)
+                },
+                "neutral" => Faction::Neutral,
+                "void" => Faction::Void,
+                _ => {
+                    println!("Invalid type.");
+                    break;
+                }
+            }
+            match level.get_mut_tile(x,y) {
+                Ok(tile) => {
+                    *tile = faction;
+                },
+                Err(_) => println!("Index out of bounds"),
+            }
+        }
     }
 
     pub fn start_tile(&mut self) {
-        println!("Initializing level...");
         let mut level = self.init_tile_level();
 
-        println!("This is the dungenon-drawer. \nType Help for list of commands.");
+        println!("This is the tile mode of dungenon-drawer. \nType Help for list of commands.");
         loop {
             println!("Enter command:");
             let command = Self::string_from_cmd();
@@ -60,7 +136,7 @@ impl Drawer {
                 "maze" => Self::carve_maze(&mut level),
                 "room" => Self::carve_rooms(&mut level),
                 "reset" => level = self.init_level(),
-                "colors" => self.change_colors(),
+                "colors" => self.change_dungeon_colors(),
                 "export" => {
                     self.png_export(&mut level);
                 },
@@ -74,7 +150,7 @@ impl Drawer {
         }
     }
 
-    fn change_colors(&mut self) {
+    fn change_dungeon_colors(&mut self) {
         use cast;
         use std::u8;
         loop {
@@ -103,6 +179,7 @@ impl Drawer {
     }
 
     fn init_tile_level(&self) -> Level<Tile> {
+        println!("Initializing level...");
         println!("Input level width: ");
         let x = Self::usize_from_cmd();
 
@@ -173,7 +250,7 @@ impl Drawer {
     fn tile_to_color(&self, tile: &Result<&Tile, Error>) -> Rgb<u8> {
         match *tile {
             Ok(ref tile) => {
-                    match self.colors.get(tile) {
+                    match self.dungeon_colors.get(tile) {
                         Some(color) => color.clone(),
                         None => Rgb([255u8, 0u8, 255u8]),
                     }
