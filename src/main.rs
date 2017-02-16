@@ -21,7 +21,7 @@ fn main() {
 
 struct Drawer {
     pub dungeon_colors: HashMap<Tile, Rgb<u8>>,
-    pub faction_colors: HashMap<Faction, Rgb<u8><,
+    pub faction_colors: HashMap<Faction, Rgb<u8>>,
 }
 
 impl Drawer {
@@ -57,7 +57,7 @@ impl Drawer {
         let simulator = FactionGen::new();
 
         println!("This is the faction mode of dungenon-drawer.");
-        println!("Type Help for list of possible commands.")
+        println!("Type Help for list of possible commands.");
         loop {
             println!("Enter command:");
             let command = Self::string_from_cmd();
@@ -65,11 +65,41 @@ impl Drawer {
                 "simulate" => Self::simulate_factions(&mut level, &mut simulator),
                 "factions" => Self::edit_level(&mut level),
                 "colors" => self.change_faction_colors(),
-                "export" => self.png_export("&mut Level"),
+                "export" => self.faction_png_export(&mut level),
                 "help" => println!("Options: help, simulate, factions, colors, export and exit"),
                 "exit" => break,
                 _ => println!("Invalid command.")
             }
+        }
+    }
+
+    fn change_faction_colors(&mut self) {
+        use cast;
+        use std::u8;
+        loop {
+            println!("Which color would you like to change? (faction, neutral, void), Type exit if you're done with modifying colors.");
+            let command = Self::string_from_cmd();
+            let key = match command.trim() {
+                "faction" => {
+
+                },
+                "neutral" => Faction::Neutral,
+                "void" => Faction::Void,
+                "exit" => break,
+                _ => {
+                    println!("Invalid command.");
+                    continue;
+                },
+            };
+            println!("Input red value for the color:");
+            let r = cast::u8(Self::usize_from_cmd()).unwrap_or(u8::MAX);
+
+            println!("Input green value for the color:");
+            let g = cast::u8(Self::usize_from_cmd()).unwrap_or(u8::MAX);
+
+            println!("Input blue value for the color:");
+            let b = cast::u8(Self::usize_from_cmd()).unwrap_or(u8::MAX);
+            self.faction_colors.insert(key, Rgb([r,g,b]));
         }
     }
 
@@ -88,9 +118,23 @@ impl Drawer {
     fn simulate_factions(level: &mut Level<Faction>, simulator: &mut FactionGen) {
         println!("How many simulation steps are iterated?");
         let iterations = Self::u64_from_cmd();
-        for 0..iterations {
-            level.apply(|m| simulator.generate(m));    
+        for _ in 0 .. iterations {
+            level.apply(|m| simulator.generate(m));
         }
+    }
+
+    fn faction_png_export(&self, level: &mut Level<Faction>) {
+        let mut level_image = RgbImage::new(level.get_width() as u32, level.get_height() as u32);
+        for x in 0 .. level.get_width() {
+            for y in 0 .. level.get_height() {
+                level_image.put_pixel(x as u32, y as u32, self.faction_to_color(&level.get_tile_with_tuple((x,y))));
+            }
+        }
+        let mut p = PathBuf::new();
+        println!("Enter png name:");
+        p.push(Self::string_from_cmd().trim());
+        p.set_extension("png");
+        level_image.save(p.as_path()).expect("Something went wrong when saving the png.");
     }
 
     fn edit_level(level: &mut Level<Faction>) {
@@ -102,7 +146,7 @@ impl Drawer {
 
             println!("Select type(faction, neutral, void):");
             let faction_type = Self::string_from_cmd();
-            let faction = match faction.trim() {
+            let faction = match faction_type.trim() {
                 "faction" => {
                     println!("Input faction number:");
                     let faction_number = Self::usize_from_cmd();
@@ -114,12 +158,17 @@ impl Drawer {
                     println!("Invalid type.");
                     break;
                 }
-            }
+            };
             match level.get_mut_tile(x,y) {
                 Ok(tile) => {
                     *tile = faction;
                 },
                 Err(_) => println!("Index out of bounds"),
+            };
+            println!("do you want to change another tile? (yes/no)");
+            match Self::string_from_cmd() {
+                "yes" => continue,
+                "no" => break,
             }
         }
     }
@@ -138,7 +187,7 @@ impl Drawer {
                 "reset" => level = self.init_level(),
                 "colors" => self.change_dungeon_colors(),
                 "export" => {
-                    self.png_export(&mut level);
+                    self.tile_png_export(&mut level);
                 },
                 "print" => Self::print_level(&level),
                 "help" => {
@@ -147,6 +196,18 @@ impl Drawer {
                 "exit" => break,
                 _ => println!("Invalid command."),
             }
+        }
+    }
+
+    fn faction_to_color(&self, tile: &Result<&Faction, Error>) -> Rgb<u8> {
+        match *tile {
+            Ok(ref tile) => {
+                    match self.faction_colors.get(tile) {
+                        Some(color) => color.clone(),
+                        None => Rgb([255u8, 0u8, 255u8]),
+                    }
+            },
+            Err(Error::IndexOutOfBounds) => panic!("Tile png import failed. Level indexing went out of bounds."),
         }
     }
 
@@ -233,7 +294,7 @@ impl Drawer {
         level.apply(|m| roomgen.generate(m));
     }
 
-    fn png_export(&self, level: &mut Level<Tile>) {
+    fn tile_png_export(&self, level: &mut Level<Tile>) {
         let mut level_image = RgbImage::new(level.get_width() as u32, level.get_height() as u32);
         for x in 0 .. level.get_width() {
             for y in 0 .. level.get_height() {
