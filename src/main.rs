@@ -32,8 +32,14 @@ impl Drawer {
         dungeon_colors.insert(Tile::Void(0), Rgb([0u8, 0u8, 0u8]));
 
         let mut faction_colors = HashMap::new();
-        faction_colors.insert(Faction::Faction(0), Rgb([200u8, 0u8, 0u8]));
-        faction_colors.insert(Faction::Faction(1), Rgb([0u8, 0u8, 127u8]));
+        faction_colors.insert(Faction::Faction(0), Rgb([0u8, 0u8, 0u8]));
+        faction_colors.insert(Faction::Faction(1), Rgb([255u8, 0u8, 0u8]));
+        faction_colors.insert(Faction::Faction(2), Rgb([0u8, 255u8, 0u8]));
+        faction_colors.insert(Faction::Faction(3), Rgb([255u8, 255u8, 0u8]));
+        faction_colors.insert(Faction::Faction(4), Rgb([0u8, 0u8, 255u8]));
+        faction_colors.insert(Faction::Faction(5), Rgb([255u8, 0u8, 255u8]));
+        faction_colors.insert(Faction::Faction(6), Rgb([0u8, 255u8, 255u8]));
+        faction_colors.insert(Faction::Faction(7), Rgb([255u8, 255u8, 255u8]));
         faction_colors.insert(Faction::Neutral, Rgb([127u8, 127u8, 127u8]));
         faction_colors.insert(Faction::Void, Rgb([0u8, 0u8, 0u8]));
 
