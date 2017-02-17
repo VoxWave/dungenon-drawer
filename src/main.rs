@@ -44,17 +44,21 @@ impl Drawer {
     }
 
     pub fn start(&mut self) {
-        println!("Choose level type(faction, tile):");
-        let t = Self::string_from_cmd();
-        match t.trim() {
-            "faction" => self.start_faction(),
-            "tile" => self.start_tile(),
+        loop {
+            println!("Choose level type(faction, tile):");
+            let t = Self::string_from_cmd();
+            match t.trim() {
+                "faction" => self.start_faction(),
+                "tile" => self.start_tile(),
+                _ => continue,
+            }
+            break;
         }
     }
 
     pub fn start_faction(&mut self) {
         let mut level = self.init_faction_level();
-        let simulator = FactionGen::new();
+        let mut simulator = FactionGen::new();
 
         println!("This is the faction mode of dungenon-drawer.");
         println!("Type Help for list of possible commands.");
@@ -81,7 +85,8 @@ impl Drawer {
             let command = Self::string_from_cmd();
             let key = match command.trim() {
                 "faction" => {
-
+                    println!("Enter faction number:");
+                    Faction::Faction(Self::usize_from_cmd())
                 },
                 "neutral" => Faction::Neutral,
                 "void" => Faction::Void,
@@ -166,9 +171,10 @@ impl Drawer {
                 Err(_) => println!("Index out of bounds"),
             };
             println!("do you want to change another tile? (yes/no)");
-            match Self::string_from_cmd() {
+            match Self::string_from_cmd().trim() {
                 "yes" => continue,
                 "no" => break,
+                _ => {println!("Invalid input. Interpretting")}
             }
         }
     }
@@ -184,7 +190,7 @@ impl Drawer {
                 "dungeon" => Self::carve_dungeon(&mut level),
                 "maze" => Self::carve_maze(&mut level),
                 "room" => Self::carve_rooms(&mut level),
-                "reset" => level = self.init_level(),
+                "reset" => level = self.init_tile_level(),
                 "colors" => self.change_dungeon_colors(),
                 "export" => {
                     self.tile_png_export(&mut level);
@@ -235,7 +241,7 @@ impl Drawer {
 
             println!("Input blue value for the color:");
             let b = cast::u8(Self::usize_from_cmd()).unwrap_or(u8::MAX);
-            self.colors.insert(key, Rgb([r,g,b]));
+            self.dungeon_colors.insert(key, Rgb([r,g,b]));
         }
     }
 
