@@ -128,9 +128,10 @@ impl Drawer {
 
     fn simulate_factions(level: &mut Level<Faction>, simulator: &mut FactionGen) {
         println!("How many simulation steps are iterated?");
+        let mut buffer = level.clone();
         let iterations = Self::u64_from_cmd();
         for _ in 0 .. iterations {
-            level.apply(|m| simulator.generate(m));
+            simulator.generate(level, &mut buffer);
         }
     }
 
