@@ -5,7 +5,7 @@ extern crate cast;
 use std::io;
 use std::path::PathBuf;
 
-use dungenon::level::Level;
+use dungenon::level::GridLevel as Level;
 use dungenon::tile::{Tile, Faction};
 use dungenon::generator::{MazeGen, RoomGen, DungeonGen, FactionGen};
 use dungenon::util::Error;
@@ -130,8 +130,12 @@ impl Drawer {
         println!("How many simulation steps are iterated?");
         let mut buffer = level.clone();
         let iterations = Self::u64_from_cmd();
-        for _ in 0 .. iterations {
+        let percent = iterations/100;
+        for n in 0 .. iterations {
             simulator.generate(level, &mut buffer);
+            if n % percent == 0 {
+                println!("{}%", n/percent);
+            }
         }
     }
 
